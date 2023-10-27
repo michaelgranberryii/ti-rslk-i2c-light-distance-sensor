@@ -34,9 +34,9 @@
 #include "../inc/OPT3001.h"
 #include "../inc/OPT3101.h"
 
-#define CONTROLLER_1    1
+//#define CONTROLLER_1    1
 //#define CONTROLLER_2    1
-//#define CONTROLLER_3    1
+#define CONTROLLER_3    1
 
 #define DEBUG_ACTIVE    1
 
@@ -95,6 +95,7 @@ void Sample_Light_Sensor()
  */
 void Sample_Distance_Sensor()
 {
+
     if (TxChannel <= 2)
     {
         // TxChannel 0 is Left
@@ -116,10 +117,14 @@ void Sample_Distance_Sensor()
         {
             FilteredDistances[2] = LPF_Calc3(Distances[2]);
             RightDistance = FilteredDistances[2];
+            #ifdef DEBUG_ACTIVE
+                printf("Distance: CH0: %d, CH1: %d, CH2: %d mm\n", FilteredDistances[0], FilteredDistances[1], FilteredDistances[2]);
+            #endif
         }
-#ifdef DEBUG_ACTIVE
-        printf("TX Channel: %d | Distance: %d mm\n", TxChannel, FilteredDistances[TxChannel]);
-#endif
+
+//        #ifdef DEBUG_ACTIVE
+//            printf("TX Channel: %d | Distance: %d mm\n", TxChannel, FilteredDistances[TxChannel]);
+//        #endif
         TxChannel = 3;
         channel = (channel + 1) % 3;
         OPT3101_StartMeasurementChannel(channel);
@@ -177,7 +182,23 @@ void Controller_2()
  */
 void Controller_3()
 {
+    uint32_t LUX_THRESHOLD_2 = 5000;
+    uint32_t min_left = 220;
+    uint32_t min_center = 200;
+    uint32_t min_right = 220;
+
     // Your code for Task 2 goes here
+    if (lux < LUX_THRESHOLD_2) {
+        Motor_Forward(3000, 3000);
+        if (CenterDistance < min_center || LeftDistance < min_left) {
+            Motor_Forward(3000, 1000);
+        } else if (CenterDistance < min_center || LeftDistance < min_right) {
+            Motor_Forward(1000, 3000);
+        }
+    } else {
+        Motor_Stop();
+    }
+
 }
 
 /**
@@ -280,6 +301,7 @@ int main(void)
 #if defined CONTROLLER_1
 
         Sample_Light_Sensor();
+//        Clock_Delay1ms(1000);
 
 #elif defined CONTROLLER_2
     #if defined CONTROLLER_1 || CONTROLLER_3
@@ -287,6 +309,7 @@ int main(void)
     #endif
 
         Sample_Distance_Sensor();
+//        Clock_Delay1ms(500);
 
 
 #elif defined CONTROLLER_3
@@ -296,6 +319,7 @@ int main(void)
 
         Sample_Light_Sensor();
         Sample_Distance_Sensor();
+        Clock_Delay1ms(1);
 
 #else
     #error "Define either one of the options: CONTROLLER_1, CONTROLLER_2, or CONTROLLER_3."
