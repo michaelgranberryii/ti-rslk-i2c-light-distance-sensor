@@ -175,7 +175,7 @@ void Controller_2()
 }
 
 /**
- * @brief
+ * @brief This function makes the robot turn left or right when it detects an object in front. The motor stops when the light sensor detects a specified LUX value.
  *
  *
  * @return None
@@ -187,13 +187,12 @@ void Controller_3()
     uint32_t min_center = 200;
     uint32_t min_right = 220;
 
-    // Your code for Task 2 goes here
     if (lux < LUX_THRESHOLD_2) {
         Motor_Forward(3000, 3000);
-        if (CenterDistance < min_center || LeftDistance < min_left) {
-            Motor_Forward(3000, 1000);
-        } else if (CenterDistance < min_center || LeftDistance < min_right) {
-            Motor_Forward(1000, 3000);
+        if (CenterDistance < min_center && LeftDistance < min_left) { // Detect the need to turn right
+            Motor_Forward(3000, 1000); // Turn right
+        } else if (CenterDistance < min_center && RightDistance < min_right) { // Detect the need to turn left
+            Motor_Forward(1000, 3000); // Turn left
         }
     } else {
         Motor_Stop();
